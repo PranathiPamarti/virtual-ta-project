@@ -104,6 +104,10 @@ Example response:
 Or test directly from Swagger UI at:
 📍 `http://localhost:8000/docs`
 
+SCREENSHOTS
+![API Demo 1](images/api-demo1.png)
+![API Demo 2](images/api-demo2.png)
+![API Demo 3](images/api-demo3.png)
 ---
 
 ## 🧪 Promptfoo Evaluation
