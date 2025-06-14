@@ -1,8 +1,11 @@
 import requests
 import json
+from dotenv import load_dotenv
+load_dotenv()
 
+import os
+API_KEY = os.getenv("AIPIPE_API_KEY")
 API_URL = "https://aipipe.org/openai/v1/embeddings"
-API_KEY = "eyJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6IjIzZjMwMDA1NzBAZHMuc3R1ZHkuaWl0bS5hYy5pbiJ9.3W41cggvkH3l0poFK5wAYoxFKRZALaGWvaW4t4Y-pq0"  # DO NOT put "Bearer " before it unless specified
 
 headers = {
     "Authorization": API_KEY,

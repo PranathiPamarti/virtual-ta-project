@@ -3,6 +3,10 @@ import time
 import json
 from datetime import datetime,timezone
 from dateutil import parser
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 BASE_URL = "https://discourse.onlinedegree.iitm.ac.in"
 CATEGORY_SLUG = "courses/tds-kb"
@@ -14,7 +18,7 @@ END_DATE = datetime(2025, 4, 14, tzinfo=timezone.utc)
 
 headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36",
-    "cookie":"_t=45LOjl4wSiVfEe%2FOc0IhVQ4yfQiWY%2F6yg187PcWfvURS7IaqW53L1PZd5t6x3I2oUvNp1C3CQOnssdsm8RgOng1gYy9Gtt6ry%2BoBKu8nofrnaXkuluJZUxw8tWRl8aymCcd%2BOsoFZ7K2LFHKBGXHtVDyiIU6TCTBHdmZQu3zf23UCaVe2SbWt6vFLlMT9iztLaWXrgmZ0scDuosmEGLCWKQ4ZfGLJn8iURpEEkmsHiaOlNkZzAMuigXWMbP29wXHf9ejrLWegPkD%2F4Q6Ta3xZC%2BPPJYo94nWJCSZUAVzVhY%2BUUP6NyAkL1RTSiAK1KQaC3RVig%3D%3D--w4ebGIop32r421eQ--OwCg%2BZxbRiLHBIGhF1UJVw%3D%3D; _bypass_cache=true; _forum_session=GuQ%2FbJXMHvjeURhzFxRDi7mgOh0uem0TbJS5xWMbm%2FT9QqBGSVRwVoeg%2FuKgIxdRejaGElU8WJ6FTQTlcoBb7JqSjdW7hT1ZrfPKXrJp1uVJIF1FfWZTLFaXgR1yJnDB2ewjhyVE9NhhXUc%2Fs824PLgb8Sa9dKv2MLEAn%2BOB36vriC8cXbw9p2pM9QsAp5zECskK4HH3vG%2F5GAolOEkyxRkkcxVPgkYzoYo424k%2BQCXePfJM4GXDYrXPJWZczVKO%2FMQOIr7KI2QjYqUQ%2BWSOAvt4kNSkbcPFZq7Q33FTRn8Oy6q5NdFeI3bUvjHPJCJCr4qv7A1Aznw5DvRJFUy7Zu%2BgxdaUePpvgSqQQRMXMYv3sm3ehZFxY3zC0uMBTw%3D%3D--9BLhGW4T%2BptzPusX--jkCcOQ%2FvMEtAmSZtA%2B9mfg%3D%3D"
+    "cookie": os.getenv("DISCOURSE_COOKIE")
 }
 
 def get_all_topic_ids():
