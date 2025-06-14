@@ -1,7 +1,7 @@
 ---
 # 🤖 Virtual TA — Teaching Assistant Automation with FastAPI + Promptfoo
 
-A lightweight, AI-powered **Virtual Teaching Assistant** built using **FastAPI**, designed to answer questions from a course discussion forum and lecture content. This tool supports semantic search, vector-based embeddings, and intelligent responses — perfect for automating TA tasks for university-level courses like TDS (Technology and Data Science).
+A lightweight, AI-powered **Virtual Teaching Assistant** built using **FastAPI**, designed to answer questions from a course discussion forum and lecture content. This tool supports semantic search, vector-based embeddings, and intelligent responses — perfect for automating TA tasks for university-level courses.
 
 ---
 
@@ -21,16 +21,33 @@ A lightweight, AI-powered **Virtual Teaching Assistant** built using **FastAPI**
 ```
 
 virtual-ta/
-├── main.py                  # FastAPI app entry point
-├── vector\_search.py         # Embedding + similarity logic
-├── data/                    # Raw data files (JSONL format)
-│   ├── anand\_scraped.jsonl
-│   └── discourse\_posts.jsonl
-├── utils/                   # Helper functions
-├── tests/                   # Promptfoo config & test cases
-│   └── project-tds-virtual-ta-promptfoo.yaml
-├── requirements.txt
-└── README.md
+├── .env                            # Environment variables
+├── .gitignore                     # Git ignore rules
+├── anand_scraped.jsonl            # Scraped lecture data
+├── anand_scraper_playwright.py    # Scraper for lecture content
+├── chunks.jsonl                   # Text chunks for embedding
+├── discourse_posts.jsonl          # Scraped forum discussions
+├── discourse_scraper.py           # Scraper for discourse posts
+├── embedded_chunks.jsonl          # File containing vector embeddings
+├── faiss_index.py                 # FAISS indexing logic
+├── generate_embeddings.py         # Embedding generation script
+├── LICENSE                        # License info
+├── main.py                        # FastAPI app entry point
+├── metadata.json                  # Metadata for chunks
+├── project-tds-virtual-ta-promptfoo.yaml  # Promptfoo evaluation config
+├── project-tds-virtual-ta-q1.webp         # Project illustration image
+├── README.md                      # Project documentation
+├── requirements.txt               # Python dependencies
+├── semantic_index.faiss          # Saved FAISS index
+├── semantic_search.py            # Vector similarity logic
+├── split_into_chunks.py          # Script to split documents into chunks
+├── structure.txt                 # File structure outline
+├── test.txt                      # Testing input
+├── test_embedding.py             # Test embedding code
+├── images/                       # Screenshots & demo images
+│   ├── api-demo1.png
+│   ├── api-demo2.png
+│   └── api-demo3.png
 
 ````
 
@@ -65,7 +82,7 @@ Visit `http://127.0.0.1:8000/docs` for the interactive API docs.
 
 ## 📬 How to Use
 
-### Endpoint: `POST /ask`
+### Endpoint: `POST /api`
 
 Send a JSON body like:
 
