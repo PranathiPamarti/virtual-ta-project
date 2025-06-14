@@ -1,0 +1,15 @@
+# Ignore Python environment and cache files
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+*.log
+*.faiss
+*.jsonl
+*.env
+
+# Ignore VSCode and other IDE folders
+.vscode/
+.idea/
