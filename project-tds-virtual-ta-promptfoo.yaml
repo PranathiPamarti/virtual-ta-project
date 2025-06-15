@@ -7,11 +7,10 @@ providers:
       method: POST
       headers:
         Content-Type: application/json
-      body: |
-        {
-          "question": "{{ question }}"{% if image %},
-          "image": "{{ image }}"{% endif %}
-        }
+      body:
+        question: "{{ question }}"
+        image: "{{ image | default('') }}"
+
       transformResponse: json
 
 # Ensure JSON schema

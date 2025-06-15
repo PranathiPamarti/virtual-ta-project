@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Virtual TA - Ask Me Anything</title>
+    <style>
+        body {
+            background-color: #fdfdfd;
+            font-family: 'Inter', sans-serif;
+            color: #333;
+            text-align: center;
+            padding: 2rem;
+            background-image: radial-gradient(circle, rgba(255,105,180,0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #ff69b4;
+            letter-spacing: 1.5px;
+        }
+        form {
+            margin: 2rem auto;
+            max-width: 600px;
+            background-color: #ffffff;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0px 0px 20px rgba(0,0,0,0.05);
+            border-left: 5px solid #ff69b4;
+        }
+        input[type="text"], input[type="file"] {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1.1rem;
+            border: 2px solid #ccc;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+        }
+        input[type="text"]:focus, input[type="file"]:focus {
+            outline: none;
+            border-color: #ff69b4;
+            background-color: #fff6fa;
+        }
+        button {
+            margin-top: 1rem;
+            background-color: #ff69b4;
+            color: white;
+            font-size: 1.1rem;
+            padding: 0.8rem 2rem;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #ff1493;
+        }
+        .response-box {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background-color: #fafafa;
+            border-left: 6px solid #ff69b4;
+            border-radius: 15px;
+            box-shadow: 0px 0px 10px rgba(0,0,0,0.05);
+            text-align: left;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .cute-img {
+            width: 140px;
+            margin-top: 2rem;
+            filter: drop-shadow(2px 2px 5px rgba(255,105,180,0.5));
+        }
+        ul li a {
+            color: #ff1493;
+            text-decoration: none;
+        }
+        ul li a:hover {
+            text-decoration: underline;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <h1>🤖 Ask Your Virtual TA Anything!</h1>
+    <form id="qa-form">
+        <input type="text" id="user-question" placeholder="What do you want to know?" required>
+        <input type="file" id="image-upload" accept="image/*">
+        <button type="submit">Send</button>
+    </form>
+
+    <div class="response-box" id="response-box" style="display: none;">
+        <h2>Answer 🧠</h2>
+        <p id="answer-text"></p>
+        <h3>Related Links 🔗</h3>
+        <ul id="links-list"></ul>
+    </div>
+
+    <img src="https://cdn-icons-png.flaticon.com/512/4712/4712027.png" alt="Funky Robot" class="cute-img">
+
+    <script>
+        document.getElementById("qa-form").addEventListener("submit", async function(event) {
+            event.preventDefault();
+            const question = document.getElementById("user-question").value;
+            const fileInput = document.getElementById("image-upload");
+            const file = fileInput.files[0];
+
+            let base64Image = null;
+            if (file) {
+                const reader = new FileReader();
+                base64Image = await new Promise((resolve) => {
+                    reader.onloadend = () => resolve(reader.result.split(',')[1]);
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            const payload = {
+                question: question,
+                image: base64Image
+            };
+
+            const responseBox = document.getElementById("response-box");
+            const answerText = document.getElementById("answer-text");
+            const linksList = document.getElementById("links-list");
+            linksList.innerHTML = "";
+
+            const res = await fetch("/api/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await res.json();
+            answerText.textContent = typeof data.answer === "string"
+                ? data.answer
+                : JSON.stringify(data.answer, null, 2);
+            data.links.forEach(link => {
+                const li = document.createElement("li");
+                const a = document.createElement("a");
+                a.href = link.url;
+                a.textContent = link.text;
+                a.target = "_blank";
+                li.appendChild(a);
+                linksList.appendChild(li);
+            });
+            responseBox.style.display = "block";
+        });
+    </script>
+</body>
+</html>

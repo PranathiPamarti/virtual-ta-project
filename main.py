@@ -1,5 +1,8 @@
 import requests
 from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from typing import List, Optional
 from fastapi.middleware.cors import CORSMiddleware
@@ -46,6 +49,8 @@ class QueryRequest(BaseModel):
 
 # Set up FastAPI app
 app = FastAPI()
+# Tell FastAPI where the templates are
+templates = Jinja2Templates(directory="templates")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # Allow any origin
@@ -92,10 +97,16 @@ def synthesize_answer(question: str, context_chunks: List[dict]) -> str:
     response = requests.post(AIPIPE_LLM_URL, headers=HEADERS, json=payload)
 
     if response.ok:
-        return response.json()["choices"][0]["message"]["content"].strip()
+        content = response.json()["choices"][0]["message"]["content"].strip()
+        try:
+            parsed = json.loads(content)
+            if isinstance(parsed, dict) and "answer" in parsed:
+                return parsed  # Return dict
+        except json.JSONDecodeError:
+            pass
+        return {"answer": content}  # Return simple string answer
     else:
-        return f"LLM error: {response.status_code} - {response.text}"
-
+        return {"answer": f"LLM error: {response.status_code} - {response.text}"}
 
 
 # API endpoint
@@ -131,6 +142,9 @@ async def answer_query(query: QueryRequest):
     relevant_chunks = get_relevant_chunks(query.question, k=5)
     answer = synthesize_answer(query.question, relevant_chunks)
     
+    if isinstance(answer, dict) and "answer" in answer:
+        answer = answer["answer"]
+    # else, answer is already a string
 
     links = [
         {"url": chunk["url"], "text": chunk["title"] or chunk["url"]}
@@ -142,7 +156,13 @@ async def answer_query(query: QueryRequest):
         "links": links
     }
 
+@app.get("/", response_class=HTMLResponse)
+async def home(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
+
+
 # Run the app
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+
 
