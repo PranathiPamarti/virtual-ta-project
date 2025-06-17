@@ -40,7 +40,8 @@ with open("metadata.json", "r", encoding="utf-8") as f:
     metadata = json.load(f)
 
 # Load local embedding model
-model = SentenceTransformer("all-MiniLM-L6-v2")
+model = SentenceTransformer("paraphrase-MiniLM-L3-v2")  # Smaller model
+model.max_seq_length = 128  # Reduce max sequence length
 
 # Define request body structure
 class QueryRequest(BaseModel):

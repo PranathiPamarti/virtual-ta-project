@@ -1,16 +1,56 @@
-# Ignore Python environment and cache files
+# System directories
 node_modules/
-venv/
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-*.sqlite3
-*.log
-*.faiss
-*.jsonl
-*.env
 
-# Ignore VSCode and other IDE folders
-.vscode/
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# IDE
 .idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Database
+*.db
+*.sqlite3
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+_images_/
+chunks.jsonl
+discourse_posts.jsonl
+analysis.jsonl
+api_demo1.png
+api_demo2.png
+api_demo3.png

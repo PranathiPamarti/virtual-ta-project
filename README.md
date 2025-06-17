@@ -60,7 +60,7 @@ virtual-ta/
 ```bash
 git clone https://github.com/PranathiPamarti/virtual-ta-project.git
 cd virtual-ta-project
-````
+```
 
 ### 2. Install Dependencies
 

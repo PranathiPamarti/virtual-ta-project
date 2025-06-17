@@ -1,32 +1,30 @@
-# Use a lightweight Python base image
-FROM python:3.10-slim
+# Use Python slim image
+FROM python:3.9-slim
 
-# Set working directory inside the container
-WORKDIR /app
-
-# Install OS dependencies
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     tesseract-ocr \
-    libglib2.0-0 \
-    libsm6 \
-    libxrender1 \
-    libxext6 \
-    curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Playwright dependencies and download Chromium
-RUN pip install --no-cache-dir playwright
-RUN playwright install chromium
+# Set working directory
+WORKDIR /app
 
-# Copy requirements file and install Python deps
+# Copy only necessary files
 COPY requirements.txt .
+COPY main.py .
+COPY templates/ templates/
+COPY semantic_index.faiss .
+COPY embedded_chunks.jsonl .
+COPY metadata.json .
+
+# Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the entire app
-COPY . .
+# Clean up Python cache
+RUN find . -type d -name "__pycache__" -exec rm -r {} +
 
-# Expose the port FastAPI will run on
+# Expose port
 EXPOSE 8000
 
-# Run the app with Uvicorn
+# Run the application
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

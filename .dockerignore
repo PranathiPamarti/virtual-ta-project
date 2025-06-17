@@ -1,26 +1,76 @@
+# Git
+.git
+.gitignore
+
+# Python
 __pycache__/
+*.py[cod]
 *.pyc
 *.pyo
 *.pyd
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
 
+# Virtual Environment
+venv/
+ENV/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Local development
+.env
+.env.local
+.env.*.local
+
+# Database
 *.db
 *.sqlite3
 
-.env
-.vscode
-.idea
-.gitignore
+# Test files
+test/
+tests/
+*_test.py
+*_tests.py
+test.txt
+test_embedding.py
 
+# Documentation
+docs/
+*.md
+!README.md
+
+# Project specific
 _images_/
-
 anand_scraper_playwright.py
 discourse_scraper.py
 project-tds-virtual-ta-promptfoo.yaml
 project-tds-virtual-ta-q1.webp
-
-README.md
-test.txt
-test_embedding.py
 anand_scraped.jsonl
 discourse_posts.jsonl
 faiss_index.py
+
+# Misc
+.DS_Store
+Thumbs.db
