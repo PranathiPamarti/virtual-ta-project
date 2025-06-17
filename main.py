@@ -22,7 +22,11 @@ load_dotenv()
 AIPIPE_API_KEY = os.getenv("AIPIPE_API_KEY")
 AIPIPE_LLM_URL = "https://aipipe.org/openai/v1/chat/completions"
 
-pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+# Configure Tesseract path based on environment
+if os.name == 'nt':  # Windows
+    pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+else:  # Linux/Unix
+    pytesseract.pytesseract.tesseract_cmd = 'tesseract'
 
 HEADERS = {
     "Authorization": AIPIPE_API_KEY,
@@ -35,13 +39,12 @@ index = faiss.read_index("semantic_index.faiss")
 with open("embedded_chunks.jsonl", "r") as f:
     embedded_chunks = [json.loads(line) for line in f if line.strip()]
 
-
 with open("metadata.json", "r", encoding="utf-8") as f:
     metadata = json.load(f)
 
 # Load local embedding model
-model = SentenceTransformer("paraphrase-MiniLM-L3-v2")  # Smaller model
-model.max_seq_length = 128  # Reduce max sequence length
+model = SentenceTransformer("paraphrase-MiniLM-L3-v2")
+model.max_seq_length = 128
 
 # Define request body structure
 class QueryRequest(BaseModel):
@@ -50,11 +53,10 @@ class QueryRequest(BaseModel):
 
 # Set up FastAPI app
 app = FastAPI()
-# Tell FastAPI where the templates are
 templates = Jinja2Templates(directory="templates")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow any origin
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -62,100 +64,116 @@ app.add_middleware(
 
 # Semantic search logic
 def get_relevant_chunks(question: str, k: int = 5) -> List[dict]:
-    embedding = model.encode([question])[0].astype("float32")
-    distances, indices = index.search(np.array([embedding]), k)
-    results = []
+    try:
+        embedding = model.encode([question])[0].astype("float32")
+        distances, indices = index.search(np.array([embedding]), k)
+        results = []
 
-    for idx in indices[0]:
-        if idx < len(metadata):
-            chunk_info = {
-                "text": embedded_chunks[idx]["text"],
-                "url": metadata[idx].get("url", ""),
-                "title": metadata[idx].get("title", ""),
-            }
-            results.append(chunk_info)
-    return results
+        for idx in indices[0]:
+            if idx < len(metadata):
+                chunk_info = {
+                    "text": embedded_chunks[idx]["text"],
+                    "url": metadata[idx].get("url", ""),
+                    "title": metadata[idx].get("title", ""),
+                }
+                results.append(chunk_info)
+        return results
+    except Exception as e:
+        print(f"Error in semantic search: {e}")
+        return []
 
 def synthesize_answer(question: str, context_chunks: List[dict]) -> str:
-    context = "\n\n".join(chunk["text"] for chunk in context_chunks)
+    try:
+        context = "\n\n".join(chunk["text"] for chunk in context_chunks)
 
-    system_prompt = (
-        "You are a helpful AI assistant answering student questions using the provided course materials. "
-        "Use only the given context to answer. If the answer is not found, say 'I couldn't find an exact answer.'"
-    )
+        system_prompt = (
+            "You are a helpful AI assistant answering student questions using the provided course materials. "
+            "Use only the given context to answer. If the answer is not found, say 'I couldn't find an exact answer.' "
+            "Be concise and accurate in your responses."
+        )
 
-    messages = [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": f"Context:\n{context}\n\nQuestion: {question}"}
-    ]
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": f"Context:\n{context}\n\nQuestion: {question}"}
+        ]
 
-    payload = {
-        "model": "gpt-4o-mini",
-        "messages": messages,
-        "temperature": 0.2
-    }
+        payload = {
+            "model": "gpt-4o-mini",
+            "messages": messages,
+            "temperature": 0.2,
+            "max_tokens": 500
+        }
 
-    response = requests.post(AIPIPE_LLM_URL, headers=HEADERS, json=payload)
+        response = requests.post(AIPIPE_LLM_URL, headers=HEADERS, json=payload)
 
-    if response.ok:
-        content = response.json()["choices"][0]["message"]["content"].strip()
-        try:
-            parsed = json.loads(content)
-            if isinstance(parsed, dict) and "answer" in parsed:
-                return parsed  # Return dict
-        except json.JSONDecodeError:
-            pass
-        return {"answer": content}  # Return simple string answer
-    else:
-        return {"answer": f"LLM error: {response.status_code} - {response.text}"}
-
+        if response.ok:
+            content = response.json()["choices"][0]["message"]["content"].strip()
+            try:
+                parsed = json.loads(content)
+                if isinstance(parsed, dict) and "answer" in parsed:
+                    return parsed
+            except json.JSONDecodeError:
+                pass
+            return {"answer": content}
+        else:
+            return {"answer": f"Error: {response.status_code} - {response.text}"}
+    except Exception as e:
+        print(f"Error in answer synthesis: {e}")
+        return {"answer": "Sorry, I encountered an error while processing your request."}
 
 # API endpoint
 @app.post("/api/")
 async def answer_query(query: QueryRequest):
-    # Step 1: Decode and load image if provided
-    image_text = ""
-    if query.image:
-        try:
-            # Check if it's a URL or base64
-            if query.image.startswith("http://") or query.image.startswith("https://"):
-                response = requests.get(query.image)
-                image = Image.open(BytesIO(response.content))
-            elif query.image.startswith("file://"):
-                local_path = query.image.replace("file://", "")
-                image = Image.open(local_path)
-            else:
-                image_data = base64.b64decode(query.image)
-                image = Image.open(BytesIO(image_data))
+    try:
+        # Step 1: Decode and load image if provided
+        image_text = ""
+        if query.image:
+            try:
+                # Check if it's a URL or base64
+                if query.image.startswith("http://") or query.image.startswith("https://"):
+                    response = requests.get(query.image)
+                    image = Image.open(BytesIO(response.content))
+                elif query.image.startswith("file://"):
+                    local_path = query.image.replace("file://", "")
+                    image = Image.open(local_path)
+                else:
+                    image_data = base64.b64decode(query.image)
+                    image = Image.open(BytesIO(image_data))
 
-            # Run OCR
-            image_text = pytesseract.image_to_string(image)
-            print("Extracted from image:", image_text)
+                # Run OCR
+                image_text = pytesseract.image_to_string(image)
+                print("Extracted from image:", image_text)
 
-        except Exception as e:
-            print("Error processing image:", e)
+            except Exception as e:
+                print(f"Error processing image: {e}")
+                image_text = ""
 
-    # Combine image text with question
-    full_question = query.question
-    if image_text.strip():
-        full_question += "\n\nText extracted from image:\n" + image_text
-    
-    relevant_chunks = get_relevant_chunks(query.question, k=5)
-    answer = synthesize_answer(query.question, relevant_chunks)
-    
-    if isinstance(answer, dict) and "answer" in answer:
-        answer = answer["answer"]
-    # else, answer is already a string
+        # Combine image text with question
+        full_question = query.question
+        if image_text.strip():
+            full_question += "\n\nText extracted from image:\n" + image_text
+        
+        relevant_chunks = get_relevant_chunks(full_question, k=5)
+        answer = synthesize_answer(full_question, relevant_chunks)
+        
+        if isinstance(answer, dict) and "answer" in answer:
+            answer = answer["answer"]
 
-    links = [
-        {"url": chunk["url"], "text": chunk["title"] or chunk["url"]}
-        for chunk in relevant_chunks if chunk["url"]
-    ]
+        links = [
+            {"url": chunk["url"], "text": chunk["title"] or chunk["url"]}
+            for chunk in relevant_chunks if chunk["url"]
+        ]
 
-    return {
-        "answer": answer,
-        "links": links
-    }
+        return {
+            "answer": answer,
+            "links": links
+        }
+    except Exception as e:
+        print(f"Error in API endpoint: {e}")
+        return {
+            "answer": "Sorry, I encountered an error while processing your request.",
+            "links": []
+        }
 
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
